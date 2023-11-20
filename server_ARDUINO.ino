@@ -1,5 +1,6 @@
 //  Server Arduino
 // V1.0 16/05/2023
+// Obs 20/11/2023
 
 #include <SPI.h>
 #include <nRF24L01.h>
@@ -7,8 +8,8 @@
 
 #define CE_PIN 9
 #define CSN_PIN 10
-byte direccion1[5] ={'c','a','n','a','l'}; 
-byte direccion2[5] ={'c','a','n','a','k'};
+byte direccion1[5] ={'c','a','n','a','1'}; 
+byte direccion2[5] ={'c','a','n','a','2'};
 RF24 radio(CE_PIN, CSN_PIN);
 
 String msg="";
@@ -32,6 +33,10 @@ void setup(){
     delay(100);
     pinMode(LedGPin, OUTPUT);
     digitalWrite(LedGPin, LOW);
+    radio.setChannel(125); //select a channel (in which there is no noise!) 0 ... 125
+    radio.setPALevel (RF24_PA_MAX); //transmitter power level. To choose RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH, RF24_PA_MAX
+    radio.setDataRate (RF24_2MBPS); //exchange rate. To choose RF24_2MBPS, RF24_1MBPS, RF24_250KBPS
+    radio.powerUp();
 }
 
 void loop(){
@@ -211,7 +216,7 @@ void escucha(){
   }  
   t1=datos[0]/1000000;
   tProm=total/(t1-t0);
-  Serial.println("Se recibieron: ");
+  Serial.println("\nSe recibieron: ");
   Serial.print(total);
   Serial.println("muestras");
   Serial.print("Tasa de muestreo: ");
