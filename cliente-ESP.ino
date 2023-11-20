@@ -2,6 +2,7 @@
 // V1.0 16/05/2023 
 // obs 30/05/2023
 // Obs: 05/11/2023
+// Obs: 20/11/2023
 
 #include "I2Cdev.h"
 #include "MPU6050.h"
@@ -24,8 +25,8 @@ int16_t ax, ay, az;
 int16_t gx, gy, gz;
 double T,P,p0;
 
-byte direccion1[5] ={'c','a','n','a','l'}; 
-byte direccion2[5] ={'c','a','n','a','k'};
+byte direccion1[5] ={'c','a','n','a','1'}; 
+byte direccion2[5] ={'c','a','n','a','2'};
 RF24 radio(CE_PIN, CSN_PIN);
 
 float Bat=0;
@@ -66,11 +67,15 @@ void setup(){
     digitalWrite(LedGPin, LOW);
     pinMode(FCPin, INPUT_PULLUP);
     myservo.attach(0);  //D0
+    radio.setChannel(125); //select a channel (in which there is no noise!) 0 ... 125
+    radio.setPALevel (RF24_PA_MAX); //transmitter power level. To choose RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH, RF24_PA_MAX
+    radio.setDataRate (RF24_2MBPS); //exchange rate. To choose RF24_2MBPS, RF24_1MBPS, RF24_250KBPS
+    radio.powerUp();
 }
 
 void loop(){
     if(ServidorON==false){
-        Tenvio=5000;
+        Tenvio=10000;
         unsigned long now = millis();
         unsigned long now2 = millis();
         bool state=LOW;
@@ -133,14 +138,18 @@ void cheq(String msg){
         Buzzer(0);
         //MUEVE SERVO
         Serial.println("Liberando seguro de caida...");
+        transmite(0);
+        delay(300);
         myservo.write(40);
+        //transmite(0);
+        
+        
+        delay(100);
         //COMPRUEBA FINAL DE CARRERA
         /*while(digitalRead(FCPin)==false){
             delay(10);
         }*/
         transmite(1);
-        delay(100);
-        transmite(0);
     }
     else if (msg.indexOf("Tms")>=0) {
         int length = msg.length();
@@ -201,10 +210,10 @@ void enviar(int opn, int Tam){
         Bat=analogRead(0);
         Bat=((Bat*3.3)/1023);
         datos[0]=Bat;
-        datos[1]=123;
+        datos[1]=micros();
         radio.write(datos, sizeof(datos)); 
-        Serial.println(datos[0]);
-        Serial.println(datos[1]);
+        //Serial.println(datos[0]);
+        //Serial.println(datos[1]);
     }
     else{
         datos[0]=micros();
